@@ -1,0 +1,90 @@
+version: "2"
+
+services:
+
+#  oreka:
+#    build: ./microservices/base/oreka
+#    links:
+#      - db
+#    networks:
+#      app_net:
+#        ipv4_address: 172.16.238.103
+
+  rtpproxy:
+    build: ./microservices/base/rtpproxy
+    links:
+      - db
+    environment:
+      ADVERTISE_IP: 106.75.28.34
+      MIN_PORT: 10000
+      MAX_PORT: 10030
+      LISTEN_PORT: 15083
+    volumes:
+      - /data/rec:/var/lib/rtpproxy
+    ports:
+      - "15083:15083/udp"
+      - "10000-10030:10000-10030/udp"
+    networks:
+      app_net:
+        ipv4_address: 172.16.238.102
+
+  web:
+    build: ./microservices/base/apache-php
+    links:
+      - db
+    ports:
+      - 8066:80
+    networks:
+      app_net:
+        ipv4_address: 172.16.238.101
+
+  db:
+    build: ./microservices/base/postgresql
+    expose:
+      - 5432
+    ports:
+      - 5432:5432
+    volumes:
+      - /data/postgresql/pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    networks:
+      app_net:
+        ipv4_address: 172.16.238.100
+
+  # billing:
+  #   build: ./microservices/base/cgrates
+  #   links:
+  #     - db
+  #     - redis
+  #   ports:
+  #     - 2012:2012
+  #     - 2013:2013
+  #     - 2014:2014
+  #     - 2080:2080
+  #   networks:
+  #     app_net:
+  #       ipv4_address: 172.16.238.104
+
+  # redis:
+  #   build: ./microservices/base/redis
+  #   expose:
+  #     - 6379
+  #   ports:
+  #     - 6379:6379
+  #   volumes:
+  #     - ./data/redis:/data
+  #   networks:
+  #     app_net:
+  #       ipv4_address: 172.16.238.105
+
+networks:
+  app_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.238.0/24
+          gateway: 172.16.238.1

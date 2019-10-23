@@ -1,0 +1,8 @@
+node_modules
+build/
+test.cfg
+pgdata
+.idea
+data/rec
+.DS_Store
+data/redis
